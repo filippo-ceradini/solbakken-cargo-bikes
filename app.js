@@ -1,8 +1,11 @@
 import express from "express";
-import session from "express-session";
+//import session from "express-session";
 import dotenv from "dotenv";
-import crypto from 'express';
+//import crypto from 'express';
 import mongoose from 'mongoose';
+import router from './router/router.js'
+
+dotenv.config()
 
 const app = express();
 app.use(express.json());
@@ -18,11 +21,7 @@ const connectDB = async () => {
     }
 }
 
-app.get('/', (req,res) => {
-   res.send({title: 'Books'})
-});
-
-
+app.use(router)
 
 const PORT = process.env.PORT || 8080;
 connectDB().then(()=>{
