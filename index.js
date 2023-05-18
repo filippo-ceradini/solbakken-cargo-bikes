@@ -1,9 +1,11 @@
 import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
-//import crypto from 'express';
 import mongoose from 'mongoose';
 import router from './router/router.js'
+import crypto from "crypto";
+
+const app = express()
 
 dotenv.config()
 app.use(session({
