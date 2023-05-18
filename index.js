@@ -7,8 +7,8 @@ import router from './router/router.js'
 
 dotenv.config()
 
-const app = express();
-app.use(express.json());
+const index = express();
+index.use(express.json());
 
 mongoose.set("strictQuery", false);
 const connectDB = async () => {
@@ -21,11 +21,11 @@ const connectDB = async () => {
     }
 }
 
-app.use(router)
+index.use(router)
 
 const PORT = process.env.PORT || 8080;
 connectDB().then(()=>{
-   app.listen(PORT, () => {
+   index.listen(PORT, () => {
        console.log(`Listening on port ${PORT}`);
    })
 });
