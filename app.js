@@ -35,6 +35,13 @@ app.use(cors({
 import router from './router/router.js'
 app.use(router)
 
+import logRoute from "./router/logRoute.js";
+app.use(logRoute)
+
+import signupRoute from "./router/signupRoute.js";
+app.use(signupRoute)
+
+
 const PORT = process.env.PORT || 8080;
 connectDB().then(()=>{
    app.listen(PORT, () => {
