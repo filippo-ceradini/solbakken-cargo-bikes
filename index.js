@@ -17,8 +17,8 @@ app.use(session({
 
 import cors from "cors";
 app.use(cors({
-    credentials: true,
-    origin: ['http://localhost:8080','http://10.0.1.3:8080']
+    credentials: true
+    //origin: ['http://localhost:8080','http://10.0.1.3:8080']
 }));
 
 const index = express();
