@@ -1,7 +1,5 @@
 import { Router } from 'express';
 import User from "../database/models/users.js";
-//import database from '../database/database.js'
-
 const router = Router();
 
 router.get('/', (req,res) => {

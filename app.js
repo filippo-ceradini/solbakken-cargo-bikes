@@ -2,12 +2,11 @@ import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
 import { connectDB } from './database/database.js';
-
+dotenv.config()
 
 const app = express();
 app.use(express.json());
 
-dotenv.config()
 import crypto from 'crypto';
 app.use(session({
     secret: crypto.randomBytes(20).toString('hex'), // generate a random secret
