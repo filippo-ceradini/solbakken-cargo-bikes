@@ -5,7 +5,7 @@ import User from "../models/users.js";
 const router = Router();
 
 router.get('/', (req,res) => {
-    res.send({title: 'Books'})
+    res.send({title: 'Users'})
 });
 
 router.get('/add-users', async (req,res) => {
@@ -22,7 +22,7 @@ router.get('/add-users', async (req,res) => {
                 isAdmin: true
             }
         ])
-        res("all good")
+        res.send("all good")
     } catch (error){
         console.log("err", error)
     }
