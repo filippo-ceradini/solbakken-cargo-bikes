@@ -1,14 +1,11 @@
 import { Router } from "express";
 import bcrypt from "bcrypt";
-import hasAuthentication from '../utils/autentication.js';
+import hasAuthentication from '../utils/authentication.js';
 import User from "../database/models/users.js"; // Replace with path to your User model
 
 const router = Router();
 
-router.get("/", hasAuthentication, (req, res) => {
-    res.send({ message: `Hi ${req.session.user.email}, Welcome to the home page` });
-})
-
+//Login Route
 router.post("/login", async (req, res) => {
     const { email, password, } = req.body;
 
@@ -40,12 +37,8 @@ router.post("/login", async (req, res) => {
     }
 })
 
-router.get("/user", hasAuthentication, (req, res) => {
-    const { email } = req.session.user;
-    res.json({ email });
-});
-
-router.post('/logout', (req, res) => {
+// Logout Route
+router.delete('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
             console.error(err);
@@ -57,6 +50,20 @@ router.post('/logout', (req, res) => {
     });
 });
 
+
+//Needed for Production?
+router.get("/user", hasAuthentication, (req, res) => {
+    const { email } = req.session.user;
+    res.json({ email });
+});
+
+
+//Not needed for Production
+router.get("/", hasAuthentication, (req, res) => {
+    res.send({ message: `Hi ${req.session.user.email}, Welcome to the home page` });
+})
+
+//Not needed for Production
 router.get('/test-session', (req, res) => {
     res.json({ session: req.session });
 });

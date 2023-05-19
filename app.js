@@ -1,50 +1,60 @@
 import express from "express";
-import session from "express-session";
-import dotenv from "dotenv";
 import { connectDB } from './database/database.js';
-dotenv.config()
+import session from "express-session";
+import MongoStore from 'connect-mongo';
+import {Server} from "socket.io";
 
+import dotenv from "dotenv";
+dotenv.config();
 const app = express();
 app.use(express.json());
 
-import crypto from 'crypto';
-app.use(session({
-    secret: crypto.randomBytes(20).toString('hex'), // generate a random secret
+//Implement Session, with secret stored in the .env file and stored on MongoDB
+const sessionConfig = session({
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
-    secure: process.env.NODE_ENV === 'production' //'secure : true' expect us to use https
-}));
-
-//Implementing Rate Limiter
-import rateLimit from "express-rate-limit"
-const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    },
 });
-app.use(apiLimiter)
+app.use(sessionConfig);
 
-import cors from "cors";
-app.use(cors({
-    credentials: true
-    //Not in use now since we are in development
-    //origin: ['http://localhost:8080','http://10.0.1.3:8080']
-}));
+//Implementing ApiLimiter
+import rateLimit from "express-rate-limit";
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use(apiLimiter);
 
-import router from './router/router.js'
-app.use(router)
+//Implementing socket.io
+import http from "http";
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["*"]
+    }
+});
 
-import logRoute from "./router/logRoute.js";
-app.use(logRoute)
+//Sharing session with socket.io
+io.use((socket, next) => {
+    sessionConfig(socket.request, {}, next);
+})
 
-import signupRoute from "./router/signupRoute.js";
-app.use(signupRoute)
-
+// Configure Socket.IO event handlers
+import configureSocketIO from "./utils/socket.js";
+configureSocketIO(io);
 
 const PORT = process.env.PORT || 8080;
-connectDB().then(()=>{
-   app.listen(PORT, () => {
-       console.log(`Listening on port ${PORT}`);
-   })
+connectDB().then(() => {
+    server.listen(PORT, () => {
+        console.log(`Listening on port ${PORT}`);
+    });
 });

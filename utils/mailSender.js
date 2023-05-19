@@ -1,25 +1,23 @@
 import nodemailer from 'nodemailer';
 
-async function sendEmail({ name, email, message }) {
+async function sendEmail( from, to, message, name, subject) {
     // Configure your email transport using Mailtrap
+    if (!message){
+        //handle undefined message
+    }
+    console.log(to, message, subject)
     const transporter = nodemailer.createTransport({
-        host: "sandbox.smtp.mailtrap.io",
-        port: 2525,
+        service: 'gmail',
         auth: {
-            user: "95a7329377984b",
-            pass: "63b81bc02f0e39"
+            user: process.env.ADMIN_EMAIL,
+            pass: process.env.MAILSENDER_PASSWORD
         }
     });
 
     const mailOptions = {
-        from: email,
-        to: 'jonathanbomber@gmail.com', // Replace with your own recipient email address
-        subject: `New contact message from ${name}`,
-        text: `
-      Name: ${name}
-      Email: ${email}
-      Message: ${message}
-    `,
+        to: to,
+        subject: subject,
+        text: message,
     };
 
 
