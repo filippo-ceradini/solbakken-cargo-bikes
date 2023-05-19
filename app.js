@@ -9,6 +9,10 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
+app.get("/", (req, res) => {
+    res.sendFile("/Users/filippo/IdeaProjects/solbakken-cargo-bikes/index.html");
+});
+
 //Implement Session, with secret stored in the .env file and stored on MongoDB
 const sessionConfig = session({
     secret: process.env.SESSION_SECRET,

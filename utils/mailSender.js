@@ -1,11 +1,10 @@
 import nodemailer from 'nodemailer';
 
-async function sendEmail( from, to, message, name, subject) {
+async function sendEmail( sendTo, message, name, subject) {
     // Configure your email transport using Mailtrap
     if (!message){
         //handle undefined message
     }
-    console.log(to, message, subject)
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -15,7 +14,7 @@ async function sendEmail( from, to, message, name, subject) {
     });
 
     const mailOptions = {
-        to: to,
+        to: sendTo,
         subject: subject,
         text: message,
     };

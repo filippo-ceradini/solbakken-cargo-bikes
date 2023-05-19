@@ -13,7 +13,8 @@ const BookingSchema = new Schema({
         required: true,
     },
     itemID:{
-        type: String,
+        type: ObjectId,
+        ref: 'Item',
         required: true,
     },
     userID:{
