@@ -3,6 +3,7 @@ import { connectDB } from './database/database.js';
 import session from "express-session";
 import MongoStore from 'connect-mongo';
 import {Server} from "socket.io";
+import {router} from "./socketHandlers/mailSocketHandlers.js";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -36,6 +37,9 @@ const apiLimiter = rateLimit({
     legacyHeaders: false,
 });
 app.use(apiLimiter);
+
+//Implement router
+app.use(router);
 
 //Implementing socket.io
 import http from "http";

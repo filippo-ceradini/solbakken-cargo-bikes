@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-async function sendEmail( sendTo, message, name, subject) {
+async function sendEmail( sendTo, subject, message) {
     // Configure your email transport using Mailtrap
     if (!message){
         //handle undefined message
@@ -16,7 +16,7 @@ async function sendEmail( sendTo, message, name, subject) {
     const mailOptions = {
         to: sendTo,
         subject: subject,
-        text: message,
+        html: message,
     };
 
 

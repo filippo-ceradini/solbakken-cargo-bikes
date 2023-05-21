@@ -1,9 +1,10 @@
-import User from "../database/models/users.js";
+import User from "../database/models/Users.js";
 import bcrypt from "bcrypt";
 import hasAuthentication from "../utils/authentication.js";
+import userVerification from "../database/models/UserVerification.js";
 
 
-const userSocketHandler = (socket) => {
+const userSocketHandlers = (socket) => {
     // Create User
     socket.on("createUser", async (data) => {
         const {email, password} = data;
@@ -48,7 +49,7 @@ const userSocketHandler = (socket) => {
             });
         }
     });
-    // Get Users
+
     socket.on("getUsers", () => hasAuthentication(socket, async () => {
         try {
             const users = await User.find();
@@ -108,41 +109,24 @@ const userSocketHandler = (socket) => {
             });
         }
     })(data));
-    // Delete User
-    socket.on("deleteUser", (data) => hasAuthentication(socket, async () => {
-        const {id} = data;
-        console.log("User Delete Request")
-        // Validate the required fields
-        if (!id) {
-            socket.emit("user-messages", {
-                status: 400,
-                message: 'Please provide user ID',
-            });
-            return;
-        }
-
+    // Delete All Users & User Verifications
+    socket.on("delete-all-users", () => hasAuthentication(socket, async () => {
+        console.log("here")
         try {
-            const user = await User.findByIdAndDelete(id);
-
-            if (user) {
-                socket.emit("user-messages", {
-                    status: 200,
-                    message: "User deleted successfully",
-                    user,
-                });
-            } else {
-                socket.emit("user-messages", {
-                    status: 404,
-                    message: "User not found",
-                });
-            }
+            await User.deleteMany({});
+            await userVerification.deleteMany({});
+            console.log("User Delete Request")
+            socket.emit("user-messages", {
+                status: 200,
+                message: "All users deleted successfully",
+            });
         } catch (error) {
             socket.emit("user-messages", {
                 status: 500,
                 message: "Server error",
             });
         }
-    })(data));
+    })());
 }
 
-export default userSocketHandler;
+export default userSocketHandlers
