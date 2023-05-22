@@ -28,7 +28,6 @@ configureSocketIO(io);
 
 import router from "./routes.js";
 import { connectDB } from "./database/database.js";
-app.use(express.static("public"));
 app.use(router);
 
 

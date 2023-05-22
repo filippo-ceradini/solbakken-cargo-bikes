@@ -1,14 +1,18 @@
-import {Router} from "express";
+import express, {Router} from "express";
 import UserVerification from "./database/models/UserVerification.js";
 import bcrypt from "bcrypt";
 import User from "./database/models/Users.js";
 import {sendEmailWithPhoto} from "./utils/mailSender.js";
-import multer from "multer";
-import fs from "fs";
-const upload = multer({ storage: multer.memoryStorage() });
-
-
+import Busboy from "busboy";
 const router = Router();
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get directory name of the current module
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+router.use(express.static("public"));
 
 // Test Hope Page
 router.get("/", (req, res) => {
@@ -89,34 +93,39 @@ router.get("/reset-password/:userId/:uniqueString", async (req, res) => {
 
 // User sends a photo
 router.get("/photo-send", (req, res) => {
-    res.sendFile("photoContact.html");
+    res.sendFile('photoUpload.html', { root: path.join(__dirname, 'public') });
 });
 
-router.post('/upload', upload.single('photo'), async (req, res) => {
-    const photoFile = req.file;
+router.post('/upload', async (req, res) => {
     const userEmail = req.session.user.email;
-    const photoName = `${Date.now()}-${userEmail}.png`;
     const subject = `New Photo Submission from ${userEmail}`;
     const message = `<h1>New Photo Received</h1><p>Received a new photo from ${userEmail}. The photo is attached with this email.</p>`;
 
-    // Convert the file to base64
-    const fileData = fs.readFileSync(photoFile.path);
-    const photoBase64 = fileData.toString('base64');
+    const busboy = Busboy({ headers: req.headers });
 
-    try {
-        await sendEmailWithPhoto(process.env.ADMIN_EMAIL, subject, message, photoName, photoBase64);
-        // Delete the file after sending the email
-        fs.unlink(photoFile.path, function(err) {
-            if (err) {
-                console.error(`Failed to delete file: ${err}`);
-            } else {
-                console.log(`File ${photoFile.path} deleted.`);
-            }
-        });
-        res.status(200).send({ message: `Photo sent successfully` });
-    } catch (error) {
-        res.status(500).send({ message: `Server error: ${error}` });
-    }
+    busboy.on('file', async (fieldname, file) => {
+        if (fieldname !== 'photo') { // Check that the fieldname matches your expected file field name
+            return res.status(400).send({ message: 'Invalid field name for the file.' });
+        }
+
+        const photoName = `${Date.now()}-${userEmail}.png`;
+
+        // Convert the file to base64
+        const fileBuffers = [];
+        for await (const data of file) {
+            fileBuffers.push(data);
+        }
+        const photoBase64 = Buffer.concat(fileBuffers).toString('base64');
+
+        try {
+            await sendEmailWithPhoto(process.env.ADMIN_EMAIL, subject, message, photoName, photoBase64);
+            res.status(200).send({ message: `Photo sent successfully` });
+        } catch (error) {
+            res.status(500).send({ message: `Server error: ${error}` });
+        }
+    });
+
+    req.pipe(busboy);
 });
 
 
