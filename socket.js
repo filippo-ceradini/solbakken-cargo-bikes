@@ -12,11 +12,11 @@ const configureSocketIO = (io) => {
         // CRUD Users
         userSocketHandlers(socket);
 
-        // CRUD for Items
-        itemSocketHandlers(socket);
-
-        // CRUD for Bookings
-        bookingSocketHandlers(socket);
+        // // CRUD for Items
+        // itemSocketHandlers(socket);
+        //
+        // // CRUD for Bookings
+        // bookingSocketHandlers(socket);
 
         // Set up socket handlers
         mailSocketHandlers(socket);
