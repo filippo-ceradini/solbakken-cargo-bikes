@@ -6,6 +6,8 @@ const logSocketHandlers = socket => {
     socket.on("login", async (data) => {
         const { email, password } = data;
 
+        console.log("Login Request");
+        console.log("socket.request.session", socket.request.session);
         // Validate the required fields
         if (!email || !password) {
             socket.emit("log-messages", {

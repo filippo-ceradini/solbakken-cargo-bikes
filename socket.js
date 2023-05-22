@@ -6,6 +6,10 @@ import mailSocketHandlers from "./socketHandlers/mailSocketHandlers.js";
 
 const configureSocketIO = (io) => {
     io.on("connection", (socket) => {
+
+        socket.on("test", () => {
+            console.log("Test");
+        })
         // Log Handlers
         logSocketHandlers(socket);
 
