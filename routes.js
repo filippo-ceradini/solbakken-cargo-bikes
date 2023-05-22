@@ -5,7 +5,8 @@ import User from "./database/models/Users.js";
 import {sendEmailWithPhoto} from "./utils/mailSender.js";
 import multer from "multer";
 import fs from "fs";
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage: multer.memoryStorage() });
+
 
 const router = Router();
 
