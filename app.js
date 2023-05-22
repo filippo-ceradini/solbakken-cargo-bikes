@@ -1,64 +1,36 @@
 import express from "express";
-import { connectDB } from './database/database.js';
-import session from "express-session";
-import MongoStore from 'connect-mongo';
 import {Server} from "socket.io";
-import {router} from "./socketHandlers/mailSocketHandlers.js";
-
 import dotenv from "dotenv";
+import http from "http";
+import {sessionMiddleware, wrap} from "./utils/serverController.js";
 dotenv.config();
+
+// Express app setup
 const app = express();
 app.use(express.json());
-
-app.get("/", (req, res) => {
-    res.sendFile("/Users/filippo/IdeaProjects/solbakken-cargo-bikes/index.html");
-});
-
-//Implement Session, with secret stored in the .env file and stored on MongoDB
-const sessionConfig = session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
-    cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    },
-});
-app.use(sessionConfig);
-
-//Implementing ApiLimiter
-import rateLimit from "express-rate-limit";
-const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-app.use(apiLimiter);
-
-//Implement router
-app.use(router);
+app.use(sessionMiddleware);
 
 //Implementing socket.io
-import http from "http";
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: "*",
-        methods: ["*"]
+        credentials: true
     }
 });
 
-//Sharing session with socket.io
-io.use((socket, next) => {
-    sessionConfig(socket.request, {}, next);
-})
+io.use(wrap(sessionMiddleware));
+
 
 // Configure Socket.IO event handlers
-import configureSocketIO from "./utils/socket.js";
+import configureSocketIO from "./socket.js";
 configureSocketIO(io);
+
+import router from "./routes.js";
+import { connectDB } from "./database/database.js";
+app.use(express.static("public"));
+app.use(router);
+
 
 const PORT = process.env.PORT || 8080;
 connectDB().then(() => {
@@ -66,3 +38,4 @@ connectDB().then(() => {
         console.log(`Listening on port ${PORT}`);
     });
 });
+

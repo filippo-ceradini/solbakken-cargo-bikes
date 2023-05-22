@@ -1,14 +1,15 @@
 import Item from "../database/models/items.js";
-import hasAuthentication from "../utils/authentication.js";
+import checkAuthenticationForEvent from "../utils/authentication.js";
 
 //
 //CRUD for Items
 //
 const itemSocketHandlers = socket => {
-    // Create Item
-    socket.on("createItem", (data) => hasAuthentication(socket, async (data) => {
+    // Create Item √
+    checkAuthenticationForEvent(
+        "createItem", async (data) => {
         const { name } = data;
-
+            console.log(name)
         // Validate the required field
         if (!name) {
             socket.emit("item-messages", {
@@ -37,9 +38,11 @@ const itemSocketHandlers = socket => {
                 message: "Server error",
             });
         }
-    })(data));
-    // Get Items
-    socket.on("getItems", () => hasAuthentication(socket, async () => {
+    })
+    (socket);
+    // Get Items √
+    checkAuthenticationForEvent(
+        "getItems",  async () => {
         try {
             const items = await Item.find();
 
@@ -54,9 +57,11 @@ const itemSocketHandlers = socket => {
                 message: "Server error",
             });
         }
-    })());
-    // Update Item
-    socket.on("updateItem", (data) => hasAuthentication(socket, async (data) => {
+    })
+    (socket);
+    // Update Item √
+    checkAuthenticationForEvent(
+        "updateItem",  async (data) => {
         const { id, name } = data;
 
         // Validate the required fields
@@ -89,9 +94,12 @@ const itemSocketHandlers = socket => {
                 message: "Server error",
             });
         }
-    })(data));
+    })
+    (socket);
+    
     // Delete Item
-    socket.on("deleteItem", (data) => hasAuthentication(socket, async (data) => {
+    checkAuthenticationForEvent(
+        "deleteItem",  async (data) => {
         const { id } = data;
 
         // Validate the required field
@@ -124,7 +132,8 @@ const itemSocketHandlers = socket => {
                 message: "Server error",
             });
         }
-    })(data));
+    })
+    (socket);
 }
 
 export default itemSocketHandlers;

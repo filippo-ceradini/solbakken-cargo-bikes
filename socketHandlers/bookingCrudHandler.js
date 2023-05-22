@@ -1,8 +1,11 @@
 import Booking from "../database/models/bookings.js";
-import hasAuthentication from "../utils/authentication.js";
+import checkAuthenticationForEvent from "../utils/authentication.js";
 
 const bookingSocketHandlers = (socket) => {
-    socket.on("createBooking", (data) => hasAuthentication(socket, async (data) => {
+    
+    // Create Booking √
+    checkAuthenticationForEvent(
+    "createBooking",  async (data) => {
         const { startTime, endTime, itemID, userID } = data;
         console.log("New Booking is being created")
         // Validate the required fields
@@ -36,12 +39,15 @@ const bookingSocketHandlers = (socket) => {
                 message: "Server error",
             });
         }
-    })(data));
-
-    socket.on("getBookings", () => hasAuthentication(socket, async () => {
+    })
+    (socket);
+    
+    // Read Booking √
+    checkAuthenticationForEvent(
+    "getBookings",    async () => {
         try {
 
-            const bookings = await Booking.find().populate("userID");
+            const bookings = await Booking.find();
             console.log("Booking read Req")
             socket.emit("booking-messages", {
                 status: 200,
@@ -54,9 +60,12 @@ const bookingSocketHandlers = (socket) => {
                 message: "Server error",
             });
         }
-    })());
-
-    socket.on("updateBooking", (data) => hasAuthentication(socket, async (data) => {
+    })
+    (socket);
+        
+    // Update Booking √
+    checkAuthenticationForEvent(
+    "updateBooking",  async (data) => {
         const { id, startTime, endTime, itemID, userID } = data;
         console.log("update booking")
         // Validate the required fields
@@ -93,9 +102,11 @@ const bookingSocketHandlers = (socket) => {
                 message: "Server error",
             });
         }
-    })(data));
-
-    socket.on("deleteBooking", (data) => hasAuthentication(socket, async (data) => {
+    })
+    
+    // Delete Booking √
+    checkAuthenticationForEvent(
+    "deleteBooking",  async (data) => {
         const { id } = data;
 
         // Validate the required fields
@@ -128,9 +139,12 @@ const bookingSocketHandlers = (socket) => {
                 message: "Server error",
             });
         }
-    })(data));
-
-    socket.on("getBookingsByDate", (date) => hasAuthentication(socket, async (date) => {
+    })
+    (socket);
+    
+    // Get Bookings by Date √
+    checkAuthenticationForEvent(
+    "getBookingsByDate",  async (date) => {
         try {
             const startDate = new Date(date);
             const endDate = new Date(date);
@@ -138,7 +152,7 @@ const bookingSocketHandlers = (socket) => {
 
             const bookings = await Booking.find({
                 startTime: { $gte: startDate, $lt: endDate }
-            }).populate("userID");
+            });
 
             socket.emit("booking-messages", {
                 status: 200,
@@ -151,9 +165,12 @@ const bookingSocketHandlers = (socket) => {
                 message: "Server error",
             });
         }
-    })(date));
-
-    socket.on("getBookingsByUser", (userId) => hasAuthentication(socket, async (userId) => {
+    })
+    (socket);
+        
+    // Get Bookings by User √
+    checkAuthenticationForEvent(
+    "getBookingsByUser",  async (userId) => {
         try {
             const bookings = await Booking.find({ userID: userId }).populate("userID", "_id");
 
@@ -168,9 +185,12 @@ const bookingSocketHandlers = (socket) => {
                 message: "Server error",
             });
         }
-    })(userId));
-
-    socket.on("getBookingsByItem", (itemId) => hasAuthentication(socket, async (itemId) => {
+    })
+    (socket);
+        
+    // Get Bookings by Item √
+    checkAuthenticationForEvent(
+    "getBookingsByItem",  async (itemId) => {
         try {
             const bookings = await Booking.find({ itemID: itemId }).populate("userID");
 
@@ -185,7 +205,8 @@ const bookingSocketHandlers = (socket) => {
                 message: "Server error",
             });
         }
-    })(itemId));
+    })
+    (socket);
 };
 
 export default bookingSocketHandlers;

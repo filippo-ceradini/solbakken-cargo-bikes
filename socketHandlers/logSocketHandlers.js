@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 const logSocketHandlers = socket => {
     // Login - Logout
     socket.on("login", async (data) => {
-        const {email, password} = data;
+        const { email, password } = data;
 
         // Validate the required fields
         if (!email || !password) {
@@ -15,23 +15,34 @@ const logSocketHandlers = socket => {
             return;
         }
 
-        //Check if user exists
-        const userFound = await User.findOne({email: email});
+        // Check if user exists
+        const userFound = await User.findOne({ email: email });
 
         if (userFound) {
-            //Check if password is the same
+            // Check if password is the same
             const isSamePassword = await bcrypt.compare(
                 password,
                 userFound.password
             );
 
             if (isSamePassword) {
-                //save the user info in the session
+                // Save the user info in the session
+                console.log(socket.request.session)
                 socket.request.session.user = {
                     id: userFound._id,
                     email: userFound.email,
+                    isAdmin: userFound.isAdmin,
+                    isVerified: userFound.isVerified,
+
                 };
-                socket.request.session.save();
+
+                 socket.request.session.save((error) => {
+                    if (error) {
+                        console.log("Error saving session:", error);
+                    }
+                });
+                console.log(socket.request.session.user.email);
+                console.log("logged in", userFound.email);
 
                 socket.emit("log-messages", {
                     status: 200,
@@ -39,7 +50,7 @@ const logSocketHandlers = socket => {
                 });
 
                 // Notify other clients about the successful login
-                socket.broadcast.emit("log-messages", {email: userFound.email});
+                socket.broadcast.emit("log-messages", { email: userFound.email });
             } else {
                 socket.emit("log-messagese", {
                     status: 400,
@@ -53,6 +64,7 @@ const logSocketHandlers = socket => {
             });
         }
     });
+
     socket.on("logout", () => {
         if (socket.request.session) {
             socket.request.session.destroy((err) => {
@@ -67,7 +79,7 @@ const logSocketHandlers = socket => {
                         status: 200,
                         message: "Logged out successfully",
                     });
-
+                    console.log("logged out");
                     // Notify other clients about the logout
                     socket.broadcast.emit("log-messages");
                     socket.disconnect();
