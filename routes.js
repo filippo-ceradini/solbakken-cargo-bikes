@@ -3,9 +3,7 @@ import UserVerification from "./database/models/UserVerification.js";
 import bcrypt from "bcrypt";
 import User from "./database/models/Users.js";
 import {sendEmailWithPhoto} from "./utils/mailSender.js";
-import multer from "multer";
 import fs from "fs";
-const upload = multer({ dest: 'uploads/' });
 
 const router = Router();
 
