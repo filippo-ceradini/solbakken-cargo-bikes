@@ -11,7 +11,7 @@ const router = Router();
 
 // Test Hope Page
 router.get("/", (req, res) => {
-    res.sendFile("/Users/filippo/IdeaProjects/solbakken-cargo-bikes/index.html");
+    res.sendFile("index.html");
 });
 
 // User Verification
@@ -78,7 +78,7 @@ router.get("/reset-password/:userId/:uniqueString", async (req, res) => {
 
     if (isUniqueStringValid && !isExpired) {
         //TODO: redirect to reset password page on svelte
-        res.sendFile(path.join('/Users/filippo/IdeaProjects/solbakken-cargo-bikes/passwordReset.html'));
+        res.sendFile('passwordReset.html');
     } else {
         res.status(400).json({
             message: "Invalid or expired reset link",
@@ -88,7 +88,7 @@ router.get("/reset-password/:userId/:uniqueString", async (req, res) => {
 
 // User sends a photo
 router.get("/photo-send", (req, res) => {
-    res.sendFile("/Users/filippo/IdeaProjects/solbakken-cargo-bikes/photoContact.html");
+    res.sendFile("photoContact.html");
 });
 
 router.post('/upload', upload.single('photo'), async (req, res) => {
