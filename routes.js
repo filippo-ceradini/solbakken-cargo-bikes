@@ -97,7 +97,7 @@ router.get("/photo-send", (req, res) => {
 });
 
 router.post('/upload', async (req, res) => {
-    const userEmail = req.session.user.email;
+    const userEmail = "req.session.user.email";
     const subject = `New Photo Submission from ${userEmail}`;
     const message = `<h1>New Photo Received</h1><p>Received a new photo from ${userEmail}. The photo is attached with this email.</p>`;
 
