@@ -9,6 +9,15 @@ const router = Router();
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+function hasAuthentication(req, res, next) {
+    if (req?.session?.user?.isVerified) {
+        next();
+    } else {
+        res.status(401).send('You are not authenticated.');
+        console.log('You are not authenticated.')
+    }
+};
+
 // Get directory name of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -18,9 +27,62 @@ router.use(express.static("public"));
 router.get("/", (req, res) => {
     res.sendFile("index.html");
 });
+// Login Page
+router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Please provide all required credentials.' });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const isSamePassword = await bcrypt.compare(password, user.password);
+
+    if (!isSamePassword) {
+        return res.status(400).json({ message: 'Incorrect password.' });
+    }
+
+    // Save user info in session
+    req.session.user = {
+        id: user._id,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        isVerified: user.isVerified,
+    };
+    console.log(req.session.user);
+    return res.status(200).json({ message: 'Logged in successfully:', username: user.username });
+});
+
+// test session
+router.get('/user', hasAuthentication, (req, res) => {
+    const {email} = req.session.user;
+    console.log(req.session.user.email)
+    res.json({email});
+});
+
+// Logout
+router.post('/logout', (req, res) => {
+
+    if (req.session) {
+        req.session.destroy(err => {
+            if (err) {
+                return res.status(500).json({ message: 'Internal server error.' });
+            } else {
+                return res.status(200).json({ message: 'Logged out successfully.' });
+            }
+        });
+    } else {
+        return res.status(400).json({ message: 'No active session to log out from.' });
+    }
+});
 
 // User Verification
-router.get("/verify/:userId/:uniqueString", async (req, res) => {
+router.get("/verify/:userId/:uniqueString", hasAuthentication, async (req, res) => {
     const { userId, uniqueString } = req.params;
     try {
         //find the user verification details
@@ -47,9 +109,9 @@ router.get("/verify/:userId/:uniqueString", async (req, res) => {
 
             if (user && UserVerificationResult) {
                 res.status(200).json({
-                    //TODO: redirect to login page
+                    //redirect to login page
                     message: "User verified and verification details deleted successfully",
-                    user,
+                    loginPageUrl: "/",
                 });
             } else {
                 res.status(404).json({
@@ -91,11 +153,12 @@ router.get("/reset-password/:userId/:uniqueString", async (req, res) => {
     }
 });
 
-// User sends a photo
+// User wants to send a photo
 router.get("/photo-send", (req, res) => {
     res.sendFile('photoUpload.html', { root: path.join(__dirname, 'public') });
 });
 
+// User sends a photo
 router.post('/upload', async (req, res) => {
     const userEmail = "req.session.user.email";
     const subject = `New Photo Submission from ${userEmail}`;

@@ -1,17 +1,15 @@
 import User from "../database/models/Users.js";
 import bcrypt from "bcrypt";
+import hasAuthentication from "../utils/auth.js";
 
-const logSocketHandlers = socket => {
+const logSocketHandlers = (socket) => {
     // Login - Logout
     socket.on("login", async (data) => {
         const { email, password } = data;
-
-        console.log("Login Request");
-        console.log("socket.request.session", socket.request.session);
         // Validate the required fields
         if (!email || !password) {
             socket.emit("log-messages", {
-                status: 400,
+                success: false,
                 message: 'Please provide all required credentials',
             });
             return;
@@ -29,7 +27,6 @@ const logSocketHandlers = socket => {
 
             if (isSamePassword) {
                 // Save the user info in the session
-                console.log(socket.request.session)
                 socket.request.session.user = {
                     id: userFound._id,
                     email: userFound.email,
@@ -38,30 +35,31 @@ const logSocketHandlers = socket => {
 
                 };
 
-                 socket.request.session.save((error) => {
+
+                socket.request.session.save((error) => {
                     if (error) {
                         console.log("Error saving session:", error);
                     }
                 });
-                console.log(socket.request.session.user.email);
-                console.log("logged in", userFound.email);
-
                 socket.emit("log-messages", {
-                    status: 200,
+                    success: true,
                     message: "Logged in " + userFound.email,
+                    username: userFound.username,
                 });
-
                 // Notify other clients about the successful login
-                socket.broadcast.emit("log-messages", { email: userFound.email });
+                socket.broadcast.emit("brd-log-messages", {
+                    success: true,
+                    email: socket.request.session.user.email });
+                console.log("logged in", userFound.email);
             } else {
-                socket.emit("log-messagese", {
-                    status: 400,
+                socket.emit("log-messages", {
+                    success: false,
                     message: "Wrong password. Try again",
                 });
             }
         } else {
             socket.emit("log-messages", {
-                status: 404,
+                success: false,
                 message: "User Not found",
             });
         }
@@ -69,6 +67,7 @@ const logSocketHandlers = socket => {
 
     socket.on("logout", () => {
         if (socket.request.session) {
+            console.log(socket.request.session)
             socket.request.session.destroy((err) => {
                 if (err) {
                     console.error(err);
@@ -78,7 +77,7 @@ const logSocketHandlers = socket => {
                     });
                 } else {
                     socket.emit("log-messages", {
-                        status: 200,
+                        success: true,
                         message: "Logged out successfully",
                     });
                     console.log("logged out");

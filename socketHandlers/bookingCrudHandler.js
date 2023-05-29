@@ -1,5 +1,6 @@
 import Booking from "../database/models/bookings.js";
 import checkAuthenticationForEvent from "../utils/authentication.js";
+import mongoose from "mongoose";
 
 const bookingSocketHandlers = (socket) => {
     
@@ -166,6 +167,29 @@ const bookingSocketHandlers = (socket) => {
             });
         }
     })
+    (socket);
+
+
+
+    // Check if Item is Available √
+    checkAuthenticationForEvent(
+        "getBikeStatus",  async (bikeId) => {
+            try {
+                console.log("Checking bike status")
+                console.log(bikeId)
+                const now = new Date();
+                const bookings = await Booking.find({
+                    itemID: bikeId,
+                    startTime: { $lte: now },
+                    endTime: { $gte: now }
+                });
+                console.log(bookings)
+                const status = bookings.length > 0 ? "Booked" : "Availablle";
+                socket.emit("bike-status", { bikeId, status });
+            } catch (error) {
+                socket.emit("bike-status", { bikeId, status: "Error" });
+            }
+        })
     (socket);
         
     // Get Bookings by User √

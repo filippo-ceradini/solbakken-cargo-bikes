@@ -3,13 +3,14 @@ import userSocketHandlers from "./socketHandlers/userCrudHandler.js";
 import itemSocketHandlers from "./socketHandlers/itemsCrudHandler.js";
 import bookingSocketHandlers from "./socketHandlers/bookingCrudHandler.js";
 import mailSocketHandlers from "./socketHandlers/mailSocketHandlers.js";
+import hasAuthentication from "./utils/auth.js";
+import User from "./database/models/Users.js";
+import bcrypt from "bcrypt";
+
+let isAuth = false;
 
 const configureSocketIO = (io) => {
     io.on("connection", (socket) => {
-
-        socket.on("test", () => {
-            console.log("Test");
-        })
         // Log Handlers
         logSocketHandlers(socket);
 

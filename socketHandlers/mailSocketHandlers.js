@@ -36,10 +36,10 @@ const mailSocketHandlers = (socket) => {
     // Subscribe Email
     let newUser;
     socket.on("subscribe-email", async (data) => {
-        const {email, password} = data;
-        if (!password || !email) {
+        const {username, email, password} = data;
+        if (!username || !password || !email) {
             socket.emit("subscribe-messages", {
-                message: "Email or Password missing",
+                message: "Username, Email or Password missing",
             });
             return;
         }
@@ -54,9 +54,10 @@ const mailSocketHandlers = (socket) => {
             } else {
                 // Create a new user
                 newUser = new User({
+                    username,
                     email,
                     password: await bcrypt.hash(password, 10),
-                    isVerified: false,
+                    isVerified: true,
                 });
                 await newUser.save();
                 socket.emit("subscribe-messages", {
