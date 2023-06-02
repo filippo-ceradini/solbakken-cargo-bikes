@@ -11,6 +11,13 @@ let isAuth = false;
 
 const configureSocketIO = (io) => {
     io.on("connection", (socket) => {
+        socket.on("test", (data) => {
+            console.log("test server socket connection", data);
+        });
+
+        socket.on("test socket session", () =>{
+            console.log("test socket session", socket.request.session);
+        })
         // Log Handlers
         // logSocketHandlers(socket);
 
