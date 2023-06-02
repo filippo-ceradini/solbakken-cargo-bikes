@@ -3,49 +3,68 @@ import checkAuthenticationForEvent from "../utils/authentication.js";
 import mongoose from "mongoose";
 
 const bookingSocketHandlers = (socket) => {
-    
-    // Create Booking √
-    checkAuthenticationForEvent(
-    "createBooking",  async (data) => {
-        const { startTime, endTime, itemID, userID } = data;
-        console.log("New Booking is being created")
-        // Validate the required fields
-        if (!startTime || !endTime || !itemID || !userID) {
-            socket.emit("booking-messages", {
-                status: 400,
-                message: "Please provide all required booking details",
-            });
-            return;
+
+    socket.on(
+        "createBooking",  async (data) => {
+            const { startTime, endTime, itemID } = data;
+            console.log("New Booking is being created")
+            // Validate the required fields
+            if (!startTime || !endTime || !itemID) {
+                socket.emit("booking-messages", {
+                    status: 400,
+                    message: "Please provide all required booking details",
+                });
+                return;
+            }
+
+            // Retrieve the user's email from the session
+            const userEmail = socket.request.session.user.email;
+            if (!userEmail) {
+                socket.emit("booking-messages", {
+                    status: 400,
+                    message: "User is not authenticated",
+                });
+                return;
+            }
+
+            try {
+                // Find the user by their email
+                const user = await User.findOne({ email: userEmail });
+                if (!user) {
+                    socket.emit("booking-messages", {
+                        status: 404,
+                        message: "User not found",
+                    });
+                    return;
+                }
+
+                // Create a new booking
+                const newBooking = new Booking({
+                    startTime,
+                    endTime,
+                    itemID,
+                    userID: user._id, // Use the user's ID from the database
+                });
+
+                await newBooking.save();
+
+                socket.emit("booking-messages", {
+                    status: 200,
+                    message: "Booking created successfully",
+                    booking: newBooking,
+                });
+            } catch (error) {
+                socket.emit("booking-messages", {
+                    status: 500,
+                    message: "Server error",
+                });
+            }
         }
+    );
 
-        try {
-            // Create a new booking
-            const newBooking = new Booking({
-                startTime,
-                endTime,
-                itemID,
-                userID,
-            });
-
-            await newBooking.save();
-
-            socket.emit("booking-messages", {
-                status: 200,
-                message: "Booking created successfully",
-                booking: newBooking,
-            });
-        } catch (error) {
-            socket.emit("booking-messages", {
-                status: 500,
-                message: "Server error",
-            });
-        }
-    })
-    (socket);
-    
     // Read Booking √
-    checkAuthenticationForEvent(
-    "getBookings",    async () => {
+    socket.on(
+        "getBookings",    async () => {
         try {
 
             const bookings = await Booking.find();
@@ -62,11 +81,10 @@ const bookingSocketHandlers = (socket) => {
             });
         }
     })
-    (socket);
         
     // Update Booking √
-    checkAuthenticationForEvent(
-    "updateBooking",  async (data) => {
+    socket.on(
+        "updateBooking",  async (data) => {
         const { id, startTime, endTime, itemID, userID } = data;
         console.log("update booking")
         // Validate the required fields
@@ -106,8 +124,8 @@ const bookingSocketHandlers = (socket) => {
     })
     
     // Delete Booking √
-    checkAuthenticationForEvent(
-    "deleteBooking",  async (data) => {
+    socket.on(
+        "deleteBooking",  async (data) => {
         const { id } = data;
 
         // Validate the required fields
@@ -141,11 +159,9 @@ const bookingSocketHandlers = (socket) => {
             });
         }
     })
-    (socket);
-    
     // Get Bookings by Date √
-    checkAuthenticationForEvent(
-    "getBookingsByDate",  async (date) => {
+    socket.on(
+        "getBookingsByDate",  async (date) => {
         try {
             const startDate = new Date(date);
             const endDate = new Date(date);
@@ -167,12 +183,9 @@ const bookingSocketHandlers = (socket) => {
             });
         }
     })
-    (socket);
-
-
 
     // Check if Item is Available √
-    checkAuthenticationForEvent(
+    socket.on(
         "getBikeStatus",  async (bikeId) => {
             try {
                 console.log("Checking bike status")
@@ -190,11 +203,11 @@ const bookingSocketHandlers = (socket) => {
                 socket.emit("bike-status", { bikeId, status: "Error" });
             }
         })
-    (socket);
+
         
     // Get Bookings by User √
-    checkAuthenticationForEvent(
-    "getBookingsByUser",  async (userId) => {
+    socket.on(
+        "getBookingsByUser",  async (userId) => {
         try {
             const bookings = await Booking.find({ userID: userId }).populate("userID", "_id");
 
@@ -210,14 +223,15 @@ const bookingSocketHandlers = (socket) => {
             });
         }
     })
-    (socket);
+
         
     // Get Bookings by Item √
-    checkAuthenticationForEvent(
+   socket.on(
     "getBookingsByItem",  async (itemId) => {
         try {
-            const bookings = await Booking.find({ itemID: itemId }).populate("userID");
 
+            const bookings = await Booking.find({ });
+            console.log("Booking read Req", bookings)
             socket.emit("booking-messages", {
                 status: 200,
                 message: "Retrieved bookings for the specified item successfully",
@@ -230,7 +244,6 @@ const bookingSocketHandlers = (socket) => {
             });
         }
     })
-    (socket);
 };
 
 export default bookingSocketHandlers;

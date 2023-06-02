@@ -12,19 +12,19 @@ let isAuth = false;
 const configureSocketIO = (io) => {
     io.on("connection", (socket) => {
         // Log Handlers
-        logSocketHandlers(socket);
+        // logSocketHandlers(socket);
 
         // CRUD Users
-        userSocketHandlers(socket);
+        // userSocketHandlers(socket);
 
         // CRUD for Items
-        itemSocketHandlers(socket);
+        // itemSocketHandlers(socket);
 
         // CRUD for Bookings
         bookingSocketHandlers(socket);
 
         // Set up socket handlers
-        mailSocketHandlers(socket);
+        // mailSocketHandlers(socket);
     });
 
     return io;

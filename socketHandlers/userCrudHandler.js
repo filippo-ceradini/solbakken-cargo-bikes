@@ -58,13 +58,6 @@ const userSocketHandlers = (socket) => {
 
     // Read User √
     socket.on("getUsers", async (socket) => {
-        if (!hasAuthentication(socket)) {
-            socket.emit("user-messages", {
-                status: 401,
-                message: "You are not authenticated",
-            });
-            return;
-        }
         try {
             const users = await User.find();
             console.log("User Read Request");
