@@ -7,6 +7,7 @@ import bcrypt from "bcrypt";
 const mailSocketHandlers = (socket) => {
     // Contact Email
     socket.on("contact-email", async (data) => {
+        console.log(`Contact Email Request: ${data}`);
         const {name, email, message} = data;
         if (!name || !email || !message) {
             socket.emit("contact-response", {

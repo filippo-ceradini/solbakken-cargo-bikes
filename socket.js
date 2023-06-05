@@ -5,9 +5,7 @@ import bookingSocketHandlers from "./socketHandlers/bookingCrudHandler.js";
 import mailSocketHandlers from "./socketHandlers/mailSocketHandlers.js";
 import hasAuthentication from "./utils/auth.js";
 import User from "./database/models/Users.js";
-import bcrypt from "bcrypt";
 
-let isAuth = false;
 
 const configureSocketIO = (io) => {
     io.on("connection", (socket) => {
@@ -28,10 +26,10 @@ const configureSocketIO = (io) => {
         // itemSocketHandlers(socket);
 
         // CRUD for Bookings
-        bookingSocketHandlers(socket);
+        // bookingSocketHandlers(socket);
 
         // Set up socket handlers
-        // mailSocketHandlers(socket);
+        mailSocketHandlers(socket);
     });
 
     return io;

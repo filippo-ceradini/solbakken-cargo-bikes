@@ -5,6 +5,7 @@ import User from "./database/models/Users.js";
 import {sendEmailWithPhoto} from "./utils/mailSender.js";
 import Busboy from "busboy";
 const router = Router();
+import Booking from "./database/models/bookings.js";
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -16,7 +17,7 @@ function hasAuthentication(req, res, next) {
         res.status(401).send('You are not authenticated.');
         console.log('You are not authenticated.')
     }
-};
+}
 
 // Get directory name of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -54,6 +55,7 @@ router.post('/login', async (req, res) => {
         isAdmin: user.isAdmin,
         isVerified: user.isVerified,
     };
+    console.log(req.session.user);
     return res.status(200).json({ message: 'Logged in successfully:', username: user.username });
 });
 
@@ -61,6 +63,68 @@ router.post('/login', async (req, res) => {
 router.get('/user', hasAuthentication, (req, res) => {
     const {email} = req.session.user;
     res.json({email});
+});
+
+router.post("/api/weekly-bookings", async (req, res) => {
+    console.log(req.session)
+    try {
+        const startDate = new Date(req.body.startDate);
+        const endDate = new Date(req.body.endDate);
+        console.log(startDate, endDate);
+        endDate.setDate(endDate.getDate() + 1);
+
+        const bookings = await Booking.find({
+            startTime: { $gte: startDate, $lt: endDate }
+        });
+
+        console.log(bookings)
+        res.json({
+            status: 200,
+            message: "Retrieved bookings for the specified week successfully",
+            bookings,
+        });
+    } catch (error) {
+        res.json({
+            status: 500,
+            message: "Server error",
+        });
+    }
+});
+
+
+router.post('/api/bookings', async (req, res) => {
+    const { startTime, endTime, itemID } = req.body;
+    const userEmail = "murray88mph@gmail.com";
+
+    if (!startTime || !endTime || !itemID) {
+        res.status(400).json({ message: "Please provide all required booking details" });
+        return;
+    }
+
+    if (!userEmail) {
+        res.status(400).json({ message: "User is not authenticated" });
+        return;
+    }
+
+    try {
+        const user = await User.findOne({ email: userEmail });
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        const newBooking = new Booking({
+            startTime,
+            endTime,
+            itemID,
+            userID: user._id,
+        });
+
+        await newBooking.save();
+        res.status(200).json({ message: "Booking created successfully", booking: newBooking });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
 });
 
 // Logout
