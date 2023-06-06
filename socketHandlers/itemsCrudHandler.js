@@ -1,4 +1,4 @@
-import Item from "../database/models/items.js";
+import Item from "../database/models/Items.js";
 import checkAuthenticationForEvent from "../utils/authentication.js";
 
 //

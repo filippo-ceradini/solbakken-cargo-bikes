@@ -2,7 +2,7 @@ import express, {Router} from "express";
 import UserVerification from "./database/models/UserVerification.js";
 import bcrypt from "bcrypt";
 import User from "./database/models/Users.js";
-import {sendEmailWithPhoto} from "./utils/mailSender.js";
+import {sendBasicEmail, sendEmailWithPhoto} from "./utils/mailSender.js";
 import Busboy from "busboy";
 const router = Router();
 import Booking from "./database/models/bookings.js";
@@ -28,24 +28,25 @@ router.use(express.static("public"));
 router.get("/", (req, res) => {
     res.sendFile("index.html");
 });
+
 // Login Page
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+router.post('/login',async (req, res) => {
+    const {email, password} = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({ message: 'Please provide all required credentials.' });
+        return res.status(400).json({message: 'Please provide all required credentials.'});
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({email});
 
     if (!user) {
-        return res.status(404).json({ message: 'User not found.' });
+        return res.status(404).json({message: 'User not found.'});
     }
 
     const isSamePassword = await bcrypt.compare(password, user.password);
 
     if (!isSamePassword) {
-        return res.status(400).json({ message: 'Incorrect password.' });
+        return res.status(400).json({message: 'Incorrect password.'});
     }
 
     // Save user info in session
@@ -55,7 +56,7 @@ router.post('/login', async (req, res) => {
         isAdmin: user.isAdmin,
         isVerified: user.isVerified,
     };
-    return res.status(200).json({ message: 'Logged in successfully:', username: user.username });
+    return res.status(200).json({message: 'Logged in successfully:', username: user.username});
 });
 
 // test session
@@ -68,20 +69,18 @@ router.post("/api/weekly-bookings", async (req, res) => {
         const startDate = new Date(req.body.startDate);
         const endDate = new Date(req.body.endDate);
         const bikeId = req.body.bikeId;
-        console.log("weekly bookings dates",startDate, endDate);
         endDate.setDate(endDate.getDate() + 1);
 
         const bookings = await Booking.find({
             startTime: { $gte: startDate, $lt: endDate },
             itemID: bikeId
-        });
+        }).populate("userID", "email");
 
         res.json({
             status: 200,
             message: "Retrieved bookings for the specified week successfully",
             bookings,
         });
-        console.log("weekly bookings", bookings);
     } catch (error) {
         res.json({
             status: 500,
@@ -91,30 +90,15 @@ router.post("/api/weekly-bookings", async (req, res) => {
 });
 
 router.post("/api/getBooking", async (req, res) => {
+    const { bookingID } = req.body;
     try {
-        const startDate = new Date(req.body.startTime);
-        const endDate = new Date(req.body.endTime);
-        const bikeID = req.body.itemID;
-        console.log('dates for editbooking', startDate, endDate);
-        endDate.setDate(endDate.getDate() + 1);
-
-        const bookings = await Booking.find({
-            startTime: { $gte: startDate, $lte: endDate },
-            itemID: bikeID
-        });
-        console.log('bookings for editbooking', bookings);
-
-        const users = await Promise.all(bookings.map((booking) => User.findById(booking.userID)));
-        console.log('users for editbooking', users)
-
+        const booking = await Booking.findById(bookingID)
         res.json({
             status: 200,
-            message: "Retrieved bookings for the specified week successfully",
-            bookings,
-            users
+            message: "The booking Belongs to Another User",
+
         });
     } catch (error) {
-        console.error(error);
         res.json({
             status: 500,
             message: "Server error",
@@ -124,9 +108,7 @@ router.post("/api/getBooking", async (req, res) => {
 
 router.post("/api/bookings/cancel", async (req, res) => {
     const { bookingID } = req.body;
-    console.log("bookingID", bookingID)
     try {
-        const booking = await Booking.findByIdAndRemove(bookingID);
         res.json({
             status: 200,
             message: "Deleted Booking successfully",
@@ -139,23 +121,17 @@ router.post("/api/bookings/cancel", async (req, res) => {
     }
 });
 
-
-
-router.post('/api/bookings', async (req, res) => {
+router.post('/api/create-booking', async (req, res) => {
     const { startTime, endTime, itemID, userEmail } = req.body;
-
     console.log(req.session.user)
-
     if (!startTime || !endTime || !itemID) {
         res.status(400).json({ message: "Please provide all required booking details" });
         return;
     }
-
     if (!userEmail) {
         res.status(400).json({ message: "User is not authenticated" });
         return;
     }
-
     try {
         const user = await User.findOne({ email: userEmail });
         if (!user) {
@@ -163,19 +139,36 @@ router.post('/api/bookings', async (req, res) => {
             return;
         }
 
+        console.log(itemID)
+        const existingBookings = await Booking.find({
+            itemID: itemID,
+            $or: [
+                { startTime: { $lt: new Date(endTime), $gte: new Date(startTime) } },
+                { endTime: { $gt: new Date(startTime), $lte: new Date(endTime) } }
+            ]
+        }).sort({ startTime: 1 });
+
+        let actualEndTime = new Date(endTime);
+        let message = "Booking created successfully";
+        if (existingBookings.length > 0) {
+            // Adjust the end time to prevent overlapping
+            actualEndTime = existingBookings[0].startTime;
+            message = "Booking created successfully, but the end time was adjusted due to overlap with an existing booking";
+        }
+
         const newBooking = new Booking({
             startTime,
-            endTime,
-            itemID,
+            endTime: actualEndTime,
+            itemID: itemID,
             userID: user._id,
         });
-
         await newBooking.save();
-        res.status(200).json({ message: "Booking created successfully", booking: newBooking });
+        res.status(200).json({ message: message, booking: newBooking });
     } catch (error) {
         res.status(500).json({ message: "Server error" });
     }
 });
+
 
 // Logout
 router.post('/logout', (req, res) => {
@@ -265,16 +258,16 @@ router.get("/reset-password/:userId/:uniqueString", async (req, res) => {
     }
 });
 
-// User wants to send a photo
-router.get("/photo-send", (req, res) => {
-    res.sendFile('photoUpload.html', { root: path.join(__dirname, 'public') });
-});
-
 // User sends a photo
 router.post('/upload', async (req, res) => {
-    const userEmail = "req.session.user.email";
+    const userEmail = req.body.email;
     const subject = `New Photo Submission from ${userEmail}`;
-    const message = `<h1>New Photo Received</h1><p>Received a new photo from ${userEmail}. The photo is attached with this email.</p>`;
+    const message = `
+            <h1>New Photo Received</h1>
+            <br>
+            <p>Message: ${req.body.message}</p>
+            <br>
+            <p>Received a new photo from ${userEmail}. The photo is attached with this email.</p>`;
 
     const busboy = Busboy({ headers: req.headers });
 
@@ -294,15 +287,46 @@ router.post('/upload', async (req, res) => {
 
         try {
             await sendEmailWithPhoto(process.env.ADMIN_EMAIL, subject, message, photoName, photoBase64);
-            res.status(200).send({ message: `Photo sent successfully` });
+            return res.status(200).send({ message: 'Logged out successfully.' });
         } catch (error) {
-            res.status(500).send({ message: `Server error: ${error}` });
+            return res.status(500).send({ message: `Server error: ${error}` });
         }
     });
-
+    res.
     req.pipe(busboy);
 });
 
+router.post('/api/booking-message', async (req, res) => {
+    const bookingId = req.body.bookingId;
+    const userEmail = req.body.email;
+    const subject = `Solbakken Cargo Bikes - Message from ${userEmail}`;
+
+
+    try {
+        const booking = await Booking.findOne({ _id: bookingId }).populate('userID');
+        if (!booking) {
+            return res.status(404).send({message: 'Booking not found.'});
+        }
+        const emailOfUserThatBooked = booking.userID.email
+        const bookingDate = booking.startTime.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const bookingTime = booking.startTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        const message =
+            `<h4>Message from Solbakken User</h4>
+        <p>I am writing because I really need the bike that you booked on: </p>
+        <p>${bookingDate} ${bookingTime}</p>
+        <p>If your use is more flexible, it would be amazing if you could cancel the booking.</p>
+        <p>Otherwise you could write me at ${userEmail}</p>
+        <br>`
+        const response = await sendBasicEmail(emailOfUserThatBooked, subject, message);
+        if (response.success) {
+            return res.status(200).json({message: 'Email sent successfully.'});
+        } else {
+            return res.status(500).json({message: 'Error sending email.'});
+        }
+    } catch (error) {
+        return res.status(500).send({message: `Server error: ${error}`});
+    }
+});
 
 
 export default router;
