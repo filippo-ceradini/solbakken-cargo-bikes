@@ -55,33 +55,81 @@ router.post('/login', async (req, res) => {
         isAdmin: user.isAdmin,
         isVerified: user.isVerified,
     };
-    console.log(req.session.user);
     return res.status(200).json({ message: 'Logged in successfully:', username: user.username });
 });
 
 // test session
-router.get('/user', hasAuthentication, (req, res) => {
-    const {email} = req.session.user;
-    res.json({email});
+router.get('/user', (req, res) => {
+    res.json(req.session);
 });
 
 router.post("/api/weekly-bookings", async (req, res) => {
-    console.log(req.session)
     try {
         const startDate = new Date(req.body.startDate);
         const endDate = new Date(req.body.endDate);
-        console.log(startDate, endDate);
+        const bikeId = req.body.bikeId;
+        console.log("weekly bookings dates",startDate, endDate);
         endDate.setDate(endDate.getDate() + 1);
 
         const bookings = await Booking.find({
-            startTime: { $gte: startDate, $lt: endDate }
+            startTime: { $gte: startDate, $lt: endDate },
+            itemID: bikeId
         });
 
-        console.log(bookings)
         res.json({
             status: 200,
             message: "Retrieved bookings for the specified week successfully",
             bookings,
+        });
+        console.log("weekly bookings", bookings);
+    } catch (error) {
+        res.json({
+            status: 500,
+            message: "Server error",
+        });
+    }
+});
+
+router.post("/api/getBooking", async (req, res) => {
+    try {
+        const startDate = new Date(req.body.startTime);
+        const endDate = new Date(req.body.endTime);
+        const bikeID = req.body.itemID;
+        console.log('dates for editbooking', startDate, endDate);
+        endDate.setDate(endDate.getDate() + 1);
+
+        const bookings = await Booking.find({
+            startTime: { $gte: startDate, $lte: endDate },
+            itemID: bikeID
+        });
+        console.log('bookings for editbooking', bookings);
+
+        const users = await Promise.all(bookings.map((booking) => User.findById(booking.userID)));
+        console.log('users for editbooking', users)
+
+        res.json({
+            status: 200,
+            message: "Retrieved bookings for the specified week successfully",
+            bookings,
+            users
+        });
+    } catch (error) {
+        console.error(error);
+        res.json({
+            status: 500,
+            message: "Server error",
+        });
+    }
+});
+
+router.post("/api/bookings/cancel", async (req, res) => {
+    const { bookingID } = req.body;
+    console.log("bookingID", bookingID)
+    try {
+        const booking = await Booking.findByIdAndRemove(bookingID);
+        res.json({
+            status: 200,
+            message: "Deleted Booking successfully",
         });
     } catch (error) {
         res.json({
@@ -92,9 +140,11 @@ router.post("/api/weekly-bookings", async (req, res) => {
 });
 
 
+
 router.post('/api/bookings', async (req, res) => {
-    const { startTime, endTime, itemID } = req.body;
-    const userEmail = "murray88mph@gmail.com";
+    const { startTime, endTime, itemID, userEmail } = req.body;
+
+    console.log(req.session.user)
 
     if (!startTime || !endTime || !itemID) {
         res.status(400).json({ message: "Please provide all required booking details" });

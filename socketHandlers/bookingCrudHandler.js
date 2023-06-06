@@ -18,7 +18,7 @@ const bookingSocketHandlers = (socket) => {
             }
 
             // Retrieve the user's email from the session
-            const userEmail = socket.request.session.user.email;
+            const userEmail = "wer@wer.com";
             if (!userEmail) {
                 socket.emit("booking-messages", {
                     status: 400,
@@ -183,6 +183,33 @@ const bookingSocketHandlers = (socket) => {
             });
         }
     })
+
+    socket.on("test", () => {
+        console.log("test")
+    }  )
+    // Get Bookings by Date √
+    socket.on(
+        "getBookingsByDateAndItemId",  async (data) => {
+            console.log("getBookingsByDateAndItemId")
+            const { startDate, endDate, bikeId } = data;
+            try {
+                const bookings = await Booking.find({
+                    startTime: { $gte: startDate, $lt: endDate },
+                });
+
+                console.log(bookings)
+                socket.emit("booking-messages", {
+                    status: 200,
+                    message: "Retrieved bookings for the specified date and Id successfully",
+                    bookings,
+                });
+            } catch (error) {
+                socket.emit("booking-messages", {
+                    status: 500,
+                    message: "Server error",
+                });
+            }
+        })
 
     // Check if Item is Available √
     socket.on(

@@ -26,7 +26,7 @@ const configureSocketIO = (io) => {
         // itemSocketHandlers(socket);
 
         // CRUD for Bookings
-        // bookingSocketHandlers(socket);
+        bookingSocketHandlers(socket);
 
         // Set up socket handlers
         mailSocketHandlers(socket);
