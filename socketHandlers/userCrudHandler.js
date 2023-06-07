@@ -1,14 +1,13 @@
 import User from "../database/models/Users.js";
 import bcrypt from "bcrypt";
-import checkAuthenticationForEvent from "../utils/authentication.js";
 import userVerification from "../database/models/UserVerification.js";
-import hasAuthentication from "../utils/auth.js";
+import isAuthenticated from "../utils/auth.js";
 
 const userSocketHandlers = (socket) => {
 
     // Create User √
-    checkAuthenticationForEvent(
-        "createUser", async (data) => {
+    socket.on("createUser", isAuthenticated(socket,
+        async (data) => {
             const {name, email, password} = data;
             console.log("User Creation Request");
             console.log({name, email, password});
@@ -54,11 +53,11 @@ const userSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
-    (socket);
+        }));
 
     // Read User √
-    socket.on("getUsers", async (socket) => {
+    socket.on("getUsers", isAuthenticated(socket,
+        async (socket) => {
         try {
             const users = await User.find();
             console.log("User Read Request");
@@ -74,11 +73,11 @@ const userSocketHandlers = (socket) => {
                 message: "Server error",
             });
         }
-    })
+    }));
 
     // Update User √
-    checkAuthenticationForEvent(
-        "updateUser", async (data) => {
+    socket.on("updateUser", isAuthenticated(socket,
+        async (data) => {
             const {id, email} = data;
             console.log("User Update Request");
             console.log(data);
@@ -119,12 +118,11 @@ const userSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
-    (socket);
+        }));
 
     // Delete all Users √
-    checkAuthenticationForEvent(
-        "delete-all-users", async () => {
+    socket.on("delete-all-users", isAuthenticated(socket,
+        async () => {
             console.log("here");
             try {
                 await User.deleteMany({});
@@ -140,12 +138,10 @@ const userSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
-    (socket);
+        }));
 
     // Delete Single User √
-    checkAuthenticationForEvent(
-        "deleteUser", async (data) => {
+    socket.on("deleteUser", isAuthenticated(socket,async (data) => {
             const {id} = data;
             console.log("User Delete Request");
             console.log(data);
@@ -181,8 +177,7 @@ const userSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
-    (socket);
+        }));
 };
 
 export default userSocketHandlers;

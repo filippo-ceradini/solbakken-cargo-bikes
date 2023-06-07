@@ -1,9 +1,10 @@
 import Booking from "../database/models/bookings.js";
+import isAuthenticated from "../utils/auth.js";
 
 const bookingSocketHandlers = (socket) => {
 
-    socket.on(
-        "createBooking", async (data) => {
+    socket.on("createBooking",
+        isAuthenticated(socket, async (data) => {
             const {startTime, endTime, itemID} = data;
             console.log("New Booking is being created")
             // Validate the required fields
@@ -57,12 +58,12 @@ const bookingSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        }
+        })
     );
 
     // Read Booking √
-    socket.on(
-        "getBookings", async () => {
+    socket.on("getBookings", isAuthenticated(socket,
+        async () => {
             try {
 
                 const bookings = await Booking.find();
@@ -77,11 +78,11 @@ const bookingSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
+        }));
 
     // Update Booking √
-    socket.on(
-        "updateBooking", async (data) => {
+    socket.on("updateBooking", isAuthenticated(socket,
+        async (data) => {
             const {id, startTime, endTime, itemID, userID} = data;
             // Validate the required fields
             if (!id || !startTime || !endTime || !itemID || !userID) {
@@ -117,11 +118,11 @@ const bookingSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
+        }))
 
     // Delete Booking √
-    socket.on(
-        "deleteBooking", async (data) => {
+    socket.on("deleteBooking", isAuthenticated(socket,
+        async (data) => {
             const {id} = data;
 
             // Validate the required fields
@@ -154,10 +155,11 @@ const bookingSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
+        }));
+
     // Get Bookings by Date √
-    socket.on(
-        "getBookingsByDate", async (date) => {
+    socket.on("getBookingsByDate", isAuthenticated(socket,
+        async (date) => {
             try {
                 const startDate = new Date(date);
                 const endDate = new Date(date);
@@ -178,11 +180,11 @@ const bookingSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
+        }));
 
     // Get Bookings by Date √
-    socket.on(
-        "getBookingsByDateAndItemId", async (data) => {
+    socket.on("getBookingsByDateAndItemId", isAuthenticated(socket,
+        async (data) => {
             const {startDate, endDate} = data;
             try {
                 const bookings = await Booking.find({
@@ -200,10 +202,11 @@ const bookingSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
+        }));
 
     // Check if Item is Available √
-    socket.on("getBikeStatus", async () => {
+    socket.on("getBikeStatus", isAuthenticated(socket,
+        async () => {
         console.log("getBikeStatus")
         try {
             const now = new Date();
@@ -230,14 +233,11 @@ const bookingSocketHandlers = (socket) => {
             console.error(error);
             socket.emit("bike-status", {});
         }
-    });
-
-
-
+    }));
 
     // Get Bookings by User √
-    socket.on(
-        "getBookingsByUser", async (userId) => {
+    socket.on("getBookingsByUser", isAuthenticated(socket,
+        async (userId) => {
             try {
                 const bookings = await Booking.find({userID: userId}).populate("userID", "_id");
 
@@ -252,12 +252,12 @@ const bookingSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
+        }));
 
 
     // Get Bookings by Item √
-    socket.on(
-        "getBookingsByItem", async () => {
+    socket.on("getBookingsByItem", isAuthenticated(socket,
+        async () => {
             try {
 
                 const bookings = await Booking.find({});
@@ -272,7 +272,7 @@ const bookingSocketHandlers = (socket) => {
                     message: "Server error",
                 });
             }
-        })
+        }));
 };
 
 export default bookingSocketHandlers;
