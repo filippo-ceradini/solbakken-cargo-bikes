@@ -82,7 +82,7 @@ const mailSocketHandlers = (socket) => {
             const uniqueString = uuidv4() + newUserId.toString();
             const hashedUniqueString = await bcrypt.hash(uniqueString, 10);
             //URL for verification
-            const verificationURL = `${process.env.SERVER_URL}/verify/${newUserId}/${uniqueString}`;
+            const verificationURL = `${process.env.CLIENT_URL}/verify/${newUserId}/${uniqueString}`;
             //save the hashed unique string to the database
             const newUserVerification = new UserVerification({
                 userId: newUserId,

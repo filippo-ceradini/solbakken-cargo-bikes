@@ -124,7 +124,7 @@ router.post("/api/bookings/cancel", async (req, res) => {
 
 router.post('/api/create-booking', async (req, res) => {
     const { startTime, endTime, itemID, userEmail } = req.body;
-    console.log(req.session.user)
+    console.log("session",req.session.user)
     if (!startTime || !endTime || !itemID) {
         res.status(400).json({ message: "Please provide all required booking details" });
         return;
@@ -188,7 +188,7 @@ router.post('/logout', (req, res) => {
 });
 
 // User Verification
-router.get("/verify/:userId/:uniqueString", hasAuthentication, async (req, res) => {
+router.get("/verify/:userId/:uniqueString", async (req, res) => {
     const { userId, uniqueString } = req.params;
     try {
         //find the user verification details
@@ -216,9 +216,10 @@ router.get("/verify/:userId/:uniqueString", hasAuthentication, async (req, res) 
             if (user && UserVerificationResult) {
                 res.status(200).json({
                     //redirect to login page
-                    message: "User verified and verification details deleted successfully",
+                    message: "User verified!",
                     loginPageUrl: "/",
                 });
+                console.log("User verified and verification details deleted successfully")
             } else {
                 res.status(404).json({
                     message: "User not found or verification details not found during verification",

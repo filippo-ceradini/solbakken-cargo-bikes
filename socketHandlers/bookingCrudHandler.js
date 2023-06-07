@@ -180,10 +180,6 @@ const bookingSocketHandlers = (socket) => {
             }
         })
 
-    socket.on("test", () => {
-        console.log("test")
-        socket.emit("test", "test")
-    })
     // Get Bookings by Date √
     socket.on(
         "getBookingsByDateAndItemId", async (data) => {
@@ -208,6 +204,7 @@ const bookingSocketHandlers = (socket) => {
 
     // Check if Item is Available √
     socket.on("getBikeStatus", async () => {
+        console.log("getBikeStatus")
         try {
             const now = new Date();
             const future = new Date();
