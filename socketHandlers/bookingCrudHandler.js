@@ -3,6 +3,7 @@ import {socketAuthentication} from "../utils/authUtilities.js";
 
 const bookingSocketHandlers = (socket) => {
 
+    // Create booking
     socket.on("createBooking", () => {
         socketAuthentication(socket,
             async (data) => {
@@ -219,7 +220,6 @@ const bookingSocketHandlers = (socket) => {
     socket.on("getBikeStatus", () => {
         socketAuthentication(socket,
             async () => {
-                console.log("getBikeStatus")
                 try {
                     const now = new Date();
                     const future = new Date();
