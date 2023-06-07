@@ -60,7 +60,13 @@ router.post('/login',async (req, res) => {
 // test session
 router.get('/user', (req, res) => {
     const session = req.session;
-    res.json({message:"session", session: session});
+    res.json(session);
+});
+
+//get authenticated user
+router.get('/api/user',hasAuthentication, async (req, res) => {
+    const session = req.session;
+    res.json(session);
 });
 
 router.post("/api/weekly-bookings", async (req, res) => {
@@ -168,7 +174,6 @@ router.post('/api/create-booking', async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
-
 
 // Logout
 router.post('/logout', (req, res) => {

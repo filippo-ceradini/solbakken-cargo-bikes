@@ -9,14 +9,18 @@ import User from "./database/models/Users.js";
 
 const configureSocketIO = (io) => {
     io.on("connection", (socket) => {
+        socket.on("test socket session", () => {
+            console.log("socket session", socket.request.session);
+            socket.emit("session", socket.request.session);
+        });
         // Log Handlers
-        // logSocketHandlers(socket);
+        logSocketHandlers(socket);
 
         // CRUD Users
-        // userSocketHandlers(socket);
+        userSocketHandlers(socket);
 
         // CRUD for Items
-        // itemSocketHandlers(socket);
+        itemSocketHandlers(socket);
 
         // CRUD for Bookings
         bookingSocketHandlers(socket);
