@@ -109,6 +109,7 @@ router.post("/api/getBooking", async (req, res) => {
 router.post("/api/bookings/cancel", async (req, res) => {
     const { bookingID } = req.body;
     try {
+        const booking = await Booking.findByIdAndRemove(bookingID);
         res.json({
             status: 200,
             message: "Deleted Booking successfully",

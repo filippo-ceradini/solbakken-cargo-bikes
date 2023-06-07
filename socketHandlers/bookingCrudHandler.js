@@ -66,7 +66,6 @@ const bookingSocketHandlers = (socket) => {
             try {
 
                 const bookings = await Booking.find();
-                console.log("Booking read Req")
                 socket.emit("booking-messages", {
                     status: 200,
                     message: "Retrieved bookings successfully",
@@ -84,7 +83,6 @@ const bookingSocketHandlers = (socket) => {
     socket.on(
         "updateBooking", async (data) => {
             const {id, startTime, endTime, itemID, userID} = data;
-            console.log("update booking")
             // Validate the required fields
             if (!id || !startTime || !endTime || !itemID || !userID) {
                 socket.emit("booking-messages", {
@@ -189,14 +187,12 @@ const bookingSocketHandlers = (socket) => {
     // Get Bookings by Date √
     socket.on(
         "getBookingsByDateAndItemId", async (data) => {
-            console.log("getBookingsByDateAndItemId")
             const {startDate, endDate} = data;
             try {
                 const bookings = await Booking.find({
                     startTime: {$gte: startDate, $lt: endDate},
                 });
 
-                console.log(bookings)
                 socket.emit("booking-messages", {
                     status: 200,
                     message: "Retrieved bookings for the specified date and Id successfully",
@@ -231,8 +227,6 @@ const bookingSocketHandlers = (socket) => {
                 statusObj[booking.itemID.name] = "Booked";
             });
 
-
-            console.log(statusObj)
             socket.emit("bike-status", statusObj);
 
         } catch (error) {
@@ -270,7 +264,6 @@ const bookingSocketHandlers = (socket) => {
             try {
 
                 const bookings = await Booking.find({});
-                console.log("Booking read Req", bookings)
                 socket.emit("booking-messages", {
                     status: 200,
                     message: "Retrieved bookings for the specified item successfully",
