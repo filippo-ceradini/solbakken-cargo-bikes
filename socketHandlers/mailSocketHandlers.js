@@ -58,7 +58,7 @@ const mailSocketHandlers = (socket) => {
                     username,
                     email,
                     password: await bcrypt.hash(password, 10),
-                    isVerified: true,
+                    isVerified: false,
                 });
                 await newUser.save();
                 socket.emit("subscribe-messages", {
