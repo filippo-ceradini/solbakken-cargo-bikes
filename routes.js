@@ -1,4 +1,4 @@
-import express, {Router} from "express";
+import {Router} from "express";
 import UserVerification from "./database/models/UserVerification.js";
 import bcrypt from "bcrypt";
 import User from "./database/models/Users.js";
@@ -6,24 +6,11 @@ import {sendBasicEmail, sendEmailWithPhoto} from "./utils/mailSender.js";
 import Busboy from "busboy";
 const router = Router();
 import Booking from "./database/models/bookings.js";
+import { expressAuthentication, expressAuthorization } from "./utils/authUtilities.js";
 
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-function hasAuthentication(req, res, next) {
-    if (req?.session?.user?.isVerified) {
-        next();
-    } else {
-        res.status(401).send('You are not authenticated.');
-        console.log('You are not authenticated.')
-    }
-}
-
-// Get directory name of the current module
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// Test Hope Page
-router.get("/", (req, res) => {
+// // Test Home Page
+router.get("/", expressAuthorization, (req, res) => {
     res.sendFile("index.html");
 });
 
@@ -64,12 +51,12 @@ router.get('/user', (req, res) => {
 });
 
 //get authenticated user
-router.get('/api/user',hasAuthentication, async (req, res) => {
+router.get('/api/user', expressAuthentication, async (req, res) => {
     const session = req.session;
     res.json(session);
 });
 
-router.post("/api/weekly-bookings", async (req, res) => {
+router.post("/api/weekly-bookings", expressAuthentication,async (req, res) => {
     try {
         const startDate = new Date(req.body.startDate);
         const endDate = new Date(req.body.endDate);
@@ -94,13 +81,14 @@ router.post("/api/weekly-bookings", async (req, res) => {
     }
 });
 
-router.post("/api/getBooking", async (req, res) => {
+router.post("/api/getBooking", expressAuthentication, async (req, res) => {
     const { bookingID } = req.body;
     try {
         const booking = await Booking.findById(bookingID)
         res.json({
             status: 200,
             message: "The booking Belongs to Another User",
+            booking,
 
         });
     } catch (error) {
@@ -111,13 +99,14 @@ router.post("/api/getBooking", async (req, res) => {
     }
 });
 
-router.post("/api/bookings/cancel", async (req, res) => {
+router.post("/api/bookings/cancel", expressAuthentication, async (req, res) => {
     const { bookingID } = req.body;
     try {
         const booking = await Booking.findByIdAndRemove(bookingID);
         res.json({
             status: 200,
             message: "Deleted Booking successfully",
+            booking,
         });
     } catch (error) {
         res.json({
@@ -127,7 +116,7 @@ router.post("/api/bookings/cancel", async (req, res) => {
     }
 });
 
-router.post('/api/create-booking', async (req, res) => {
+router.post('/api/create-booking', expressAuthentication, async (req, res) => {
     const { startTime, endTime, itemID, userEmail } = req.body;
     console.log("session",req.session.user)
     if (!startTime || !endTime || !itemID) {
@@ -176,7 +165,7 @@ router.post('/api/create-booking', async (req, res) => {
 });
 
 // Logout
-router.post('/logout', (req, res) => {
+router.post('/logout', expressAuthentication,(req, res) => {
 
     if (req.session) {
         req.session.destroy(err => {
@@ -255,8 +244,10 @@ router.get("/reset-password/:userId/:uniqueString", async (req, res) => {
     const isExpired = UserVerificationDetails.expiresAt < Date.now();
 
     if (isUniqueStringValid && !isExpired) {
-        //TODO: redirect to reset password page on svelte
-        res.sendFile('passwordReset.html');
+        res.status(200).json({
+            message: "Valid reset link",
+            resetPasswordPageUrl: "/",
+        });
     } else {
         res.status(400).json({
             message: "Invalid or expired reset link",
@@ -265,7 +256,7 @@ router.get("/reset-password/:userId/:uniqueString", async (req, res) => {
 });
 
 // User sends a photo
-router.post('/upload', async (req, res) => {
+router.post('/upload', expressAuthentication, async (req, res) => {
     const userEmail = req.body.email;
     const subject = `New Photo Submission from ${userEmail}`;
     const message = `
@@ -302,7 +293,7 @@ router.post('/upload', async (req, res) => {
     req.pipe(busboy);
 });
 
-router.post('/api/booking-message', async (req, res) => {
+router.post('/api/booking-message', expressAuthentication, async (req, res) => {
     const bookingId = req.body.bookingId;
     const userEmail = req.body.email;
     const subject = `Solbakken Cargo Bikes - Message from ${userEmail}`;

@@ -1,6 +1,6 @@
 import User from "../database/models/Users.js";
 import bcrypt from "bcrypt";
-import isAuthenticated from "../utils/auth.js";
+import { socketAuthentication } from "../utils/authUtilities.js";
 
 const logSocketHandlers = (socket) => {
     // Login - Logout
@@ -65,8 +65,7 @@ const logSocketHandlers = (socket) => {
         }
     });
 
-    socket.on("logout", () => {
-        isAuthenticated(socket, () => {
+    socket.on("logout", () => {socketAuthentication(socket, () => {
             if (socket.request.session) {
                 const user = socket.request.session.user;
                 socket.request.session.destroy((err) => {

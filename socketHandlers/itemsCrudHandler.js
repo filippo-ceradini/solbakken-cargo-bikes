@@ -1,12 +1,12 @@
 import Item from "../database/models/Items.js";
-import isAuthenticated from "../utils/auth.js";
+import {socketAuthentication} from "../utils/authUtilities.js";
 
 //
 //CRUD for Items
 //
 const itemSocketHandlers = socket => {
     // Create Item √
-    socket.on("createItem", isAuthenticated(socket,
+    socket.on("createItem", socketAuthentication(socket,
             async (data) => {
                 const {name} = data;
                 console.log(name)
@@ -40,7 +40,7 @@ const itemSocketHandlers = socket => {
                 }
             }));
     // Get Items √
-    socket.on("getItems", isAuthenticated(socket,
+    socket.on("getItems", socketAuthentication(socket,
             async () => {
                 try {
                     const items = await Item.find();
@@ -58,7 +58,7 @@ const itemSocketHandlers = socket => {
                 }
             }));
     // Update Item √
-    socket.on("updateItem", isAuthenticated(socket,
+    socket.on("updateItem", socketAuthentication(socket,
             async (data) => {
                 const {id, name} = data;
 
@@ -94,7 +94,7 @@ const itemSocketHandlers = socket => {
                 }
             }));
     // Delete Item √
-    socket.on("deleteItem", isAuthenticated(socket,
+    socket.on("deleteItem", socketAuthentication(socket,
         async (data) => {
             const {id} = data;
 
