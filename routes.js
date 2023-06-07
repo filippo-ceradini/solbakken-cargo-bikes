@@ -59,7 +59,8 @@ router.post('/login',async (req, res) => {
 
 // test session
 router.get('/user', (req, res) => {
-    res.json("sending req session"+req.session);
+    const session = req.session;
+    res.json({message:"session", session: session});
 });
 
 router.post("/api/weekly-bookings", async (req, res) => {
