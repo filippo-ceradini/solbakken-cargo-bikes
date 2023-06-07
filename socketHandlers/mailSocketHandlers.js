@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 const mailSocketHandlers = (socket) => {
     // Contact Email
     socket.on("contact-email", async (data) => {
-        console.log(`Contact Email Request: ${data}`);
+        console.log(`Contact Email Request`);
         const {name, email, message} = data;
         if (!name || !email || !message) {
             socket.emit("contact-response", {
@@ -25,10 +25,12 @@ const mailSocketHandlers = (socket) => {
         try {
             await sendBasicEmail(process.env.ADMIN_EMAIL, subject, emailMessage);
             socket.emit("contact-response", {
+                status: 200,
                 message: `${name}, your message has been sent successfully`
             });
         } catch (error) {
             socket.emit("contact-response", {
+                status: 500,
                 message: `Server error: ${error} `,
             });
         }
