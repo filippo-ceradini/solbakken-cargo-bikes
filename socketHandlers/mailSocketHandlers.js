@@ -133,17 +133,20 @@ const mailSocketHandlers = (socket) => {
             const UserVerificationResult = await UserVerification.findOneAndDelete({userId});
 
             if (user && UserVerificationResult) {
-                socket.emit('reset-password-success', {
+                socket.emit('reset-password-message', {
+                    success: true,
                     message: "Password updated successfully",
                     user,
                 });
             } else {
-                socket.emit('reset-password-error', {
+                socket.emit('reset-password-message', {
+                    success: false,
                     message: "User not found or verification details not found during reset password",
                 });
             }
         } else {
-            socket.emit('reset-password-error', {
+            socket.emit('reset-password-message', {
+                success: false,
                 message: "Invalid or expired reset link",
             });
         }

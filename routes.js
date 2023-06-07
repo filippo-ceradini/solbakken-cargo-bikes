@@ -22,8 +22,6 @@ function hasAuthentication(req, res, next) {
 // Get directory name of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-router.use(express.static("public"));
-
 // Test Hope Page
 router.get("/", (req, res) => {
     res.sendFile("index.html");
@@ -61,7 +59,7 @@ router.post('/login',async (req, res) => {
 
 // test session
 router.get('/user', (req, res) => {
-    res.json(req.session);
+    res.json("sending req session"+req.session);
 });
 
 router.post("/api/weekly-bookings", async (req, res) => {

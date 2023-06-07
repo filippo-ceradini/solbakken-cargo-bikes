@@ -18,6 +18,4 @@ const sessionMiddleware = session({
     },
 });
 
-const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
-
-export { sessionMiddleware, wrap };
+export { sessionMiddleware };
