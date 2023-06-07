@@ -117,8 +117,8 @@ router.post("/api/bookings/cancel", expressAuthentication, async (req, res) => {
 });
 
 router.post('/api/create-booking', expressAuthentication, async (req, res) => {
-    const { startTime, endTime, itemID, userEmail } = req.body;
-    console.log("session",req.session.user)
+    const { startTime, endTime, itemID } = req.body;
+    const userEmail = req.session.user.email;
     if (!startTime || !endTime || !itemID) {
         res.status(400).json({ message: "Please provide all required booking details" });
         return;
@@ -134,7 +134,6 @@ router.post('/api/create-booking', expressAuthentication, async (req, res) => {
             return;
         }
 
-        console.log(itemID)
         const existingBookings = await Booking.find({
             itemID: itemID,
             $or: [

@@ -6,7 +6,7 @@ import {socketAuthentication} from "../utils/authUtilities.js";
 //
 const itemSocketHandlers = socket => {
     // Create Item √
-    socket.on("createItem", socketAuthentication(socket,
+    socket.on("createItem", () => {socketAuthentication(socket,
             async (data) => {
                 const {name} = data;
                 console.log(name)
@@ -38,9 +38,9 @@ const itemSocketHandlers = socket => {
                         message: "Server error",
                     });
                 }
-            }));
+            })});
     // Get Items √
-    socket.on("getItems", socketAuthentication(socket,
+    socket.on("getItems", () => { socketAuthentication(socket,
             async () => {
                 try {
                     const items = await Item.find();
@@ -56,9 +56,9 @@ const itemSocketHandlers = socket => {
                         message: "Server error",
                     });
                 }
-            }));
+            })});
     // Update Item √
-    socket.on("updateItem", socketAuthentication(socket,
+    socket.on("updateItem", () => { socketAuthentication(socket,
             async (data) => {
                 const {id, name} = data;
 
@@ -92,9 +92,9 @@ const itemSocketHandlers = socket => {
                         message: "Server error",
                     });
                 }
-            }));
+            })});
     // Delete Item √
-    socket.on("deleteItem", socketAuthentication(socket,
+    socket.on("deleteItem", () => { socketAuthentication(socket,
         async (data) => {
             const {id} = data;
 
@@ -128,7 +128,7 @@ const itemSocketHandlers = socket => {
                     message: "Server error",
                 });
             }
-        }));
+        })});
 }
 
 export default itemSocketHandlers;
