@@ -41,8 +41,9 @@ router.post('/login',async (req, res) => {
         isAdmin: user.isAdmin,
         isVerified: user.isVerified,
     };
+    const session = req.session;
     console.log("logged in", req.session.user.email);
-    return res.status(200).json({message: 'Logged in successfully:', username: user.username});
+    return res.json({message: 'Logged in successfully.'});
 });
 
 // test session
