@@ -157,6 +157,7 @@ const mailSocketHandlers = (socket) => {
             const userExists = await User.findOne({email});
             if (!userExists) {
                 socket.emit("forgot-password-response", {
+                    success: false,
                     message: "No user with this email found",
                 });
                 return;
@@ -167,7 +168,7 @@ const mailSocketHandlers = (socket) => {
             const hashedUniqueString = await bcrypt.hash(uniqueString, 10);
 
             // URL for reset
-            const resetURL = `${process.env.SERVER_URL}/reset-password/${userExists._id}/${uniqueString}`;
+            const resetURL = `${process.env.CLIENT_URL}/reset-password/${userExists._id}/${uniqueString}`;
 
             // Save the hashed unique string to the database
             const newUserVerification = new UserVerification({
