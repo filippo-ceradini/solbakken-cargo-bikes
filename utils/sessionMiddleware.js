@@ -8,7 +8,7 @@ const mongoStore = MongoStore.create({ mongoUrl: process.env.MONGO_URI });
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
     store: mongoStore,
-    resave: false,
+    resave: true,
     saveUninitialized: true,
     cookie: {
         cookie: { secure: false },
