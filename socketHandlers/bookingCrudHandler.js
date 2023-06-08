@@ -269,7 +269,6 @@ const bookingSocketHandlers = (socket) => {
             })
     });
 
-
     // Get Bookings by Item √
     socket.on("getBookingsByItem", () => {
         socketAuthentication(socket,

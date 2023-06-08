@@ -68,7 +68,7 @@ const logSocketHandlers = (socket) => {
     socket.on("logout", async (data) => {
         const {email} = data;
         if (socket.request.session) {
-            if (await socket.request.session.user.email) {
+            if (socket.request.session.user.email) {
                 const user = {...socket.request.session.user};
                 socket.request.session.destroy((err) => {
                     if (err) {
@@ -86,22 +86,11 @@ const logSocketHandlers = (socket) => {
                         socket.disconnect();
                     }
                 })
-            } else {
-                socket.request.session.destroy((err) => {
-                    if (err) {
-                        console.error(err);
-                        socket.emit("log-messages", {
-                            status: 500,
-                            message: "Internal Server Error",
-                        });
-                    } else {
-                        socket.emit("log-messages", {
-                            success: true,
-                            message: `Logged out for conflicting session`,
-                        });
-                        socket.disconnect();
-                    }
-                })
+            } else{
+                socket.emit("log-messages", {
+                    status: 400,
+                    message: "No active session to log out from",
+                });
             }
         } else {
             // Handle the case where there is no session

@@ -48,14 +48,22 @@ router.post('/login',async (req, res) => {
     });
     return res.status(200).json({
         message: `Logged in ${user.email}`,
+
         userEmail: user.email,
     });
 });
 
 // test session
-router.get('/user', (req, res) => {
+router.get('/user', async (req, res) => {
     const session = req.session;
     res.json(session);
+});
+//get user info
+router.get('/api/user-info', expressAuthentication,async (req, res) => {
+    const session = req.session;
+    const user =  await User.findOne({email: session.user.email});
+    console.log(user)
+    res.json({userId: user.id, username: user.username, email: user.email});
 });
 
 //get authenticated user

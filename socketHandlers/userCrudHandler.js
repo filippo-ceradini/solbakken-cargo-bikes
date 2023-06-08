@@ -9,6 +9,7 @@ const userSocketHandlers = (socket) => {
     socket.on("createUser", () => {
         socketAuthentication(socket,
         async (data) => {
+            console.log(data)
             const {name, email, password} = data;
             console.log("User Creation Request");
             console.log({name, email, password});
@@ -82,16 +83,17 @@ const userSocketHandlers = (socket) => {
     socket.on("updateUser", () => {
         socketAuthentication(socket,
         async (data) => {
-            const {id, email} = data;
+            const {id, username, email} = data;
             console.log("User Update Request");
             console.log(data);
             console.log("ID:", id);
+            console.log("Username:", username);
             console.log("Email:", email);
             // Validate the required fields
-            if (!id || !email) {
+            if (!id) {
                 socket.emit("user-messages", {
                     status: 400,
-                    message: "Please provide user ID and email",
+                    message: "User ID is required",
                 });
                 return;
             }
@@ -99,7 +101,9 @@ const userSocketHandlers = (socket) => {
             try {
                 const user = await User.findByIdAndUpdate(
                     id,
+                    {username},
                     {email},
+
                     {new: true}
                 );
 
