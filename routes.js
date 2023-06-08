@@ -41,9 +41,15 @@ router.post('/login',async (req, res) => {
         isAdmin: user.isAdmin,
         isVerified: user.isVerified,
     };
-    const session = req.session;
-    console.log("logged in", req.session.user.email);
-    return res.json({message: 'Logged in successfully.'});
+    req.session.save((error) => {
+        if (error) {
+            console.log("Error saving session:", error);
+        }
+    });
+    return res.status(200).json({
+        message: `Logged in ${user.email}`,
+        userEmail: user.email,
+    });
 });
 
 // test session
@@ -233,27 +239,33 @@ router.get("/verify/:userId/:uniqueString", async (req, res) => {
 
 // User resets the password
 router.get("/reset-password/:userId/:uniqueString", async (req, res) => {
-    const { userId, uniqueString } = req.params;
+    try {
+        const { userId, uniqueString } = req.params;
+        // Find the user verification details
+        const UserVerificationDetails = await UserVerification.findOne({ userId });
 
-    // Find the user verification details
-    const UserVerificationDetails = await UserVerification.findOne({ userId });
+        // Check if uniqueString is valid
+        const isUniqueStringValid = await bcrypt.compare(uniqueString, UserVerificationDetails.uniqueString);
 
-    // Check if uniqueString is valid
-    const isUniqueStringValid = await bcrypt.compare(uniqueString, UserVerificationDetails.uniqueString);
+        // Check if the uniqueString has expired
+        const isExpired = UserVerificationDetails.expiresAt < Date.now();
 
-    // Check if the uniqueString has expired
-    const isExpired = UserVerificationDetails.expiresAt < Date.now();
-
-    if (isUniqueStringValid && !isExpired) {
-        res.status(200).json({
-            message: "Valid reset link",
-            resetPasswordPageUrl: "/",
-        });
-    } else {
-        res.status(400).json({
-            message: "Invalid or expired reset link",
+        if (isUniqueStringValid && !isExpired) {
+            res.status(200).json({
+                status: 200,
+                message: "Valid reset link"
+            });
+        } else {
+            res.status(400).json({
+                message: "Invalid or expired reset link",
+            });
+        }
+    } catch (e) {
+        res.status(500).json({
+            message: `Server error: ${e}`,
         });
     }
+
 });
 
 // User sends a photo

@@ -186,12 +186,15 @@ const mailSocketHandlers = (socket) => {
             const emailMessage = "<p> Please click the link below to reset your password </p> <br> <a href='" + resetURL + "'>Reset Password</a>" +
                 "<br><br><p> This link will <b>expire in 6 hours</b> </p>" +
                 "<br><br><p> If you did not request this email, please ignore it. </p>"
+            // Send the email
             await sendBasicEmail(email, subject, emailMessage);
             socket.emit("forgot-password-response", {
+                success: true,
                 message: "Reset link sent to your email",
             });
         } catch (error) {
             socket.emit("subscribe-messages", {
+                success: false,
                 message: `Server error: ${error} `,
             });
         }
