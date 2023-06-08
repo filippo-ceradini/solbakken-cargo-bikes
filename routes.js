@@ -41,7 +41,11 @@ router.post('/login',async (req, res) => {
         isAdmin: user.isAdmin,
         isVerified: user.isVerified,
     };
-
+    req.session.save((error) => {
+        if (error) {
+            console.log("Error saving session:", error);
+        }
+    });
     return res.status(200).json({
         message: `Logged in ${user.email}`,
 
