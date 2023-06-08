@@ -41,17 +41,29 @@ router.post('/login',async (req, res) => {
         isAdmin: user.isAdmin,
         isVerified: user.isVerified,
     };
-    req.session.save((error) => {
-        if (error) {
-            console.log("Error saving session:", error);
-        }
-    });
+
     return res.status(200).json({
         message: `Logged in ${user.email}`,
 
         userEmail: user.email,
     });
 });
+// Logout
+router.post('/logout', expressAuthentication,(req, res) => {
+
+    if (req.session) {
+        req.session.destroy(err => {
+            if (err) {
+                return res.status(500).json({ message: 'Internal server error.' });
+            } else {
+                return res.status(200).json({ message: 'Logged out successfully.' });
+            }
+        });
+    } else {
+        return res.status(400).json({ message: 'No active session to log out from.' });
+    }
+});
+
 
 // test session
 router.get('/user', async (req, res) => {
@@ -176,22 +188,6 @@ router.post('/api/create-booking', expressAuthentication, async (req, res) => {
         res.status(200).json({ message: message, booking: newBooking });
     } catch (error) {
         res.status(500).json({ message: "Server error" });
-    }
-});
-
-// Logout
-router.post('/logout', expressAuthentication,(req, res) => {
-
-    if (req.session) {
-        req.session.destroy(err => {
-            if (err) {
-                return res.status(500).json({ message: 'Internal server error.' });
-            } else {
-                return res.status(200).json({ message: 'Logged out successfully.' });
-            }
-        });
-    } else {
-        return res.status(400).json({ message: 'No active session to log out from.' });
     }
 });
 

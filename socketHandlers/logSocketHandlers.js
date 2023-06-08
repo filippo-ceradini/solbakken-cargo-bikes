@@ -68,7 +68,7 @@ const logSocketHandlers = (socket) => {
     socket.on("logout", async (data) => {
         const {email} = data;
         if (socket.request.session) {
-            if (socket.request.session.user.email) {
+            if (socket.request.session.user.email ) {
                 const user = {...socket.request.session.user};
                 socket.request.session.destroy((err) => {
                     if (err) {
