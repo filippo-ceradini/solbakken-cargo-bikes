@@ -11,11 +11,9 @@ const sessionMiddleware = session({
     resave: false,
     saveUninitialized: true,
     cookie: {
-        cookie: { secure: false },
         httpOnly: false,
         expires: 1000 * 60 * 60 * 24 * 7, // 1 week
-        secure:false,
-        sameSite: 'lax',
+        sameSite: 'none',
     },
 });
 
